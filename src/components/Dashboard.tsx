@@ -13,40 +13,43 @@ export default function Dashboard({ fid }: DashboardProps) {
   const [tipsSent, setTipsSent] = useState<number>(0);
   const [tipsReceived, setTipsReceived] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
         const [userRes, priceRes, allowanceRes, pointsRes, tipsSentRes, tipsReceivedRes] = await Promise.all([
-          fetch(`/api/user?fid=${fid}`).then(r => r.json()),
-          fetch(`/api/price`).then(r => r.json()),
-          fetch(`/api/allowance?fid=${fid}`).then(r => r.json()),
-          fetch(`/api/points?fid=${fid}`).then(r => r.json()),
-          fetch(`/api/tips?fid=${fid}`).then(r => r.json()),
-          fetch(`/api/tips/received?fid=${fid}`).then(r => r.json())
+          fetch(`${baseUrl}/user?fid=${fid}`).then(r => { if(!r.ok) throw new Error('user fetch failed'); return r.json(); }),
+          fetch(`${baseUrl}/price`).then(r => r.json()),
+          fetch(`${baseUrl}/allowance?fid=${fid}`).then(r => r.json()),
+          fetch(`${baseUrl}/points?fid=${fid}`).then(r => r.json()),
+          fetch(`${baseUrl}/tips?fid=${fid}`).then(r => r.json()),
+          fetch(`${baseUrl}/tips/received?fid=${fid}`).then(r => r.json())
         ]);
 
         if (userRes && !userRes.error) setUser(userRes);
         if (priceRes && !priceRes.error) setPrice(priceRes);
         
         if (allowanceRes && allowanceRes.allowances && allowanceRes.allowances.length > 0) {
-          setAllowance(allowanceRes.allowances[0]); // Get most recent allowance
+          setAllowance(allowanceRes.allowances[0]);
         }
         
         if (pointsRes && !pointsRes.error) setPoints(pointsRes);
         
         if (tipsSentRes && tipsSentRes.tips) {
-          const validSent = tipsSentRes.tips.filter((t: any) => t.status === 'valid').length;
-          setTipsSent(validSent);
+          setTipsSent(tipsSentRes.tips.filter((t: any) => t.status === 'valid').length);
         }
         
         if (tipsReceivedRes && tipsReceivedRes.tips) {
           setTipsReceived(tipsReceivedRes.tips.length);
         }
 
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching dashboard data', err);
+        setError(err.message || 'Unknown error occurred');
       } finally {
         setLoading(false);
       }
@@ -56,6 +59,10 @@ export default function Dashboard({ fid }: DashboardProps) {
 
   if (loading) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
+  }
+  
+  if (error) {
+    return <div className="p-4 text-center text-red-400">Error: {error}</div>;
   }
 
   return (

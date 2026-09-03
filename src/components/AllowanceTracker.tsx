@@ -12,7 +12,8 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/allowance?fid=${fid}`);
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+        const res = await fetch(`${baseUrl}/allowance?fid=${fid}`);
         const data = await res.json();
         if (data && data.allowances) {
           setHistory(data.allowances);

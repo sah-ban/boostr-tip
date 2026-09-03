@@ -10,9 +10,10 @@ export default function Leaderboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        let endpoint = '/api/leaderboard';
-        if (activeTab === 'rain') endpoint = '/api/leaderboard/rain';
-        if (activeTab === 'allowance') endpoint = '/api/leaderboard/allowance';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+        let endpoint = `${baseUrl}/leaderboard`;
+        if (activeTab === 'rain') endpoint = `${baseUrl}/leaderboard/rain`;
+        if (activeTab === 'allowance') endpoint = `${baseUrl}/leaderboard/allowance`;
         
         const res = await fetch(endpoint);
         const data = await res.json();

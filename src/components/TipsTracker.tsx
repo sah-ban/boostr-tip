@@ -14,7 +14,8 @@ export default function TipsTracker({ fid }: TipsTrackerProps) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const endpoint = activeTab === 'received' ? `/api/tips/received?fid=${fid}` : `/api/tips?fid=${fid}`;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+        const endpoint = activeTab === 'received' ? `${baseUrl}/tips/received?fid=${fid}` : `${baseUrl}/tips?fid=${fid}`;
         const res = await fetch(endpoint);
         const data = await res.json();
         
