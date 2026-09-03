@@ -9,17 +9,12 @@ import Leaderboard from '@/components/Leaderboard';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'home' | 'allowance' | 'tips' | 'leaders'>('home');
-  const [fid, setFid] = useState<string>('123'); // Hardcoded test fid
-  const [isClient, setIsClient] = useState(false);
+  const [fid, setFid] = useState<string>('1001'); // Default to seeded test user
 
   useEffect(() => {
-    setIsClient(true);
-    // In a real mini app, you'd get the FID from the Farcaster context
-    // const params = new URLSearchParams(window.location.search);
-    // if (params.has('fid')) setFid(params.get('fid')!);
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('fid')) setFid(params.get('fid')!);
   }, []);
-
-  if (!isClient) return null; // Prevent hydration errors
 
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-sky-500/30">

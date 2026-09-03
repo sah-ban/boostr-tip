@@ -15,19 +15,38 @@ export default function Dashboard({ fid }: DashboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulated API calls since we don't have real endpoints
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Mock data
-        setUser({ id: '1', fid, username: 'testuser', displayName: 'Test User', pfpUrl: null, walletAddresses: [] });
-        setPrice({ price: 0.045, priceChange1h: 1.2, priceChange24h: -5.4 });
-        setAllowance({ id: '1', snapshotDay: '2023-10-01', userRank: 42, tipAllowance: '1000', remainingAllowance: '250' });
-        setPoints({ points: '5400', leaderboardRank: 12, rainPoints: '300' });
-        setTipsSent(45);
-        setTipsReceived(12);
+        const [userRes, priceRes, allowanceRes, pointsRes, tipsSentRes, tipsReceivedRes] = await Promise.all([
+          fetch(`/api/user?fid=${fid}`).then(r => r.json()),
+          fetch(`/api/price`).then(r => r.json()),
+          fetch(`/api/allowance?fid=${fid}`).then(r => r.json()),
+          fetch(`/api/points?fid=${fid}`).then(r => r.json()),
+          fetch(`/api/tips?fid=${fid}`).then(r => r.json()),
+          fetch(`/api/tips/received?fid=${fid}`).then(r => r.json())
+        ]);
+
+        if (userRes && !userRes.error) setUser(userRes);
+        if (priceRes && !priceRes.error) setPrice(priceRes);
+        
+        if (allowanceRes && allowanceRes.allowances && allowanceRes.allowances.length > 0) {
+          setAllowance(allowanceRes.allowances[0]); // Get most recent allowance
+        }
+        
+        if (pointsRes && !pointsRes.error) setPoints(pointsRes);
+        
+        if (tipsSentRes && tipsSentRes.tips) {
+          const validSent = tipsSentRes.tips.filter((t: any) => t.status === 'valid').length;
+          setTipsSent(validSent);
+        }
+        
+        if (tipsReceivedRes && tipsReceivedRes.tips) {
+          setTipsReceived(tipsReceivedRes.tips.length);
+        }
+
       } catch (err) {
-        console.error('Error fetching data', err);
+        console.error('Error fetching dashboard data', err);
       } finally {
         setLoading(false);
       }

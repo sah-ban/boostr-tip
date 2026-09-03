@@ -10,15 +10,20 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock data fetch
-    setTimeout(() => {
-      setHistory([
-        { id: '1', snapshotDay: '2023-10-15', userRank: 42, tipAllowance: '1000', remainingAllowance: '250' },
-        { id: '2', snapshotDay: '2023-10-14', userRank: 45, tipAllowance: '900', remainingAllowance: '0' },
-        { id: '3', snapshotDay: '2023-10-13', userRank: 40, tipAllowance: '1100', remainingAllowance: '1100' },
-      ]);
-      setLoading(false);
-    }, 500);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/allowance?fid=${fid}`);
+        const data = await res.json();
+        if (data && data.allowances) {
+          setHistory(data.allowances);
+        }
+      } catch (err) {
+        console.error('Error fetching allowance history', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [fid]);
 
   if (loading) return <div className="p-4 text-center">Loading allowance history...</div>;

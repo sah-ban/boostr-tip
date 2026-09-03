@@ -7,18 +7,42 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    // Mock fetch
-    setTimeout(() => {
-      setLeaders([
-        { fid: '101', username: 'danny', displayName: 'Danny', pfpUrl: null, value: '150000', rank: 1 },
-        { fid: '102', username: 'sarah', displayName: 'Sarah', pfpUrl: null, value: '120000', rank: 2 },
-        { fid: '103', username: 'mike', displayName: 'Mike', pfpUrl: null, value: '95000', rank: 3 },
-        { fid: '104', username: 'alex', displayName: 'Alex', pfpUrl: null, value: '80000', rank: 4 },
-        { fid: '105', username: 'jess', displayName: 'Jess', pfpUrl: null, value: '75000', rank: 5 },
-      ]);
-      setLoading(false);
-    }, 500);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        let endpoint = '/api/leaderboard';
+        if (activeTab === 'rain') endpoint = '/api/leaderboard/rain';
+        if (activeTab === 'allowance') endpoint = '/api/leaderboard/allowance';
+        
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        
+        if (data && data.leaderboard) {
+          // Map DB models to LeaderboardEntry
+          const formatted = data.leaderboard.map((entry: any, index: number) => {
+            let value = '0';
+            if (activeTab === 'points') value = entry.points;
+            else if (activeTab === 'rain') value = entry.rainPoints;
+            else if (activeTab === 'allowance') value = entry.tipAllowance;
+            
+            return {
+              fid: entry.userFid,
+              username: entry.user?.username,
+              displayName: entry.user?.displayName,
+              pfpUrl: entry.user?.pfpUrl,
+              value,
+              rank: index + 1
+            };
+          });
+          setLeaders(formatted);
+        }
+      } catch (err) {
+        console.error('Error fetching leaderboard', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [activeTab]);
 
   return (
