@@ -223,7 +223,48 @@ export async function POST(request: NextRequest) {
           }
         }
       });
-      replyText = `✅ Tipped ${tipAmount} $BOOSTR to @${recipientFid}!\n\nCheck your allowance and tip history in the Farcaster Mini App!`;
+
+      // Reward the sender with 1 Point per $BOOSTR tipped
+      await prisma.points.upsert({
+        where: {
+          userFid_snapshotDay: {
+            userFid: senderFid.toString(),
+            snapshotDay: currentPeriod
+          }
+        },
+        update: {
+          points: {
+            increment: tipAmount
+          }
+        },
+        create: {
+          userFid: senderFid.toString(),
+          snapshotDay: currentPeriod,
+          points: tipAmount
+        }
+      });
+
+      // Also reward the recipient with 1 Point per $BOOSTR received!
+      await prisma.points.upsert({
+        where: {
+          userFid_snapshotDay: {
+            userFid: recipientFid.toString(),
+            snapshotDay: currentPeriod
+          }
+        },
+        update: {
+          points: {
+            increment: tipAmount
+          }
+        },
+        create: {
+          userFid: recipientFid.toString(),
+          snapshotDay: currentPeriod,
+          points: tipAmount
+        }
+      });
+
+      replyText = `✅ Tipped ${tipAmount} $BOOSTR to @${recipientFid}!\n🎉 Earned ${tipAmount} Points!\n\nCheck your ranking in the Farcaster Mini App!`;
     } else {
       replyText = `❌ Tip failed. You don't have enough $BOOSTR allowance for today.\n\nCheck your stats in the Farcaster Mini App!`;
     }
