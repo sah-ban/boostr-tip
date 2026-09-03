@@ -99,12 +99,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { data?: { hash?: string; author?: { fid?: number } } } | null;
+  let body: { 
+    type?: string; 
+    data?: { 
+      hash?: string; 
+      author?: { fid?: number };
+      text?: string;
+      embeds?: any[];
+    } 
+  } | null;
   
   try {
     body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (body?.type !== "cast.created") {
+    // Only process new casts, ignore likes/recasts if they are sent to this webhook
+    return NextResponse.json({ success: true, message: "Ignored non-cast event" });
   }
   
   const cast = body?.data;
