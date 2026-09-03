@@ -57,6 +57,28 @@ export default function Dashboard({ fid }: DashboardProps) {
     fetchData();
   }, [fid]);
 
+  const toggleAllowance = async () => {
+    if (!user) return;
+    const previousState = user.isAllowanceEnabled;
+    
+    // Optimistic UI update
+    setUser({ ...user, isAllowanceEnabled: !previousState });
+    
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      const res = await fetch(`${baseUrl}/user?fid=${fid}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAllowanceEnabled: !previousState })
+      });
+      if (!res.ok) throw new Error('Failed to update toggle');
+    } catch (err) {
+      console.error(err);
+      // Revert on error
+      setUser({ ...user, isAllowanceEnabled: previousState });
+    }
+  };
+
   if (loading) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
   }
@@ -76,6 +98,20 @@ export default function Dashboard({ fid }: DashboardProps) {
           <h2 className="text-xl font-bold">{user?.displayName || 'Unknown User'}</h2>
           <p className="text-slate-400">@{user?.username || 'unknown'} • fid: {user?.fid}</p>
         </div>
+      </div>
+
+      {/* Allowance Toggle Section */}
+      <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+        <div>
+          <p className="font-bold text-white">Receive Allowance</p>
+          <p className="text-xs text-slate-400 max-w-[200px]">Enable to receive daily $BOOSTR allowance based on your ranking criteria.</p>
+        </div>
+        <button 
+          onClick={toggleAllowance}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.isAllowanceEnabled ? 'bg-emerald-500' : 'bg-slate-600'}`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.isAllowanceEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
       </div>
 
       {/* Price Widget */}

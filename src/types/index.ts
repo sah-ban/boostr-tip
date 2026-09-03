@@ -5,6 +5,7 @@ export interface User {
   displayName: string | null;
   pfpUrl: string | null;
   walletAddresses: string[];
+  isAllowanceEnabled: boolean;
 }
 
 export interface TipData {
