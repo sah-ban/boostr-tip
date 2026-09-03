@@ -1,84 +1,144 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { TipStatus } from "@prisma/client";
+import {
+  Message,
+  NobleEd25519Signer,
+  CastAddBody,
+  makeCastAdd,
+  makeReactionAdd,
+} from "@farcaster/core";
+import axios from "axios";
+import crypto from "crypto";
 
-interface TipEvent {
-  cast_hash: string;
-  fid: string;
-  recipient_fid: string;
-  tip_amount: string;
-  tip_status: string;
-  remaining_tip_allowance: string;
-  recipient_username?: string;
-  username?: string;
+const SIGNER = process.env.SIGNER || "";
+const HUB_URL = process.env.HUB_URL || "";
+const HOOK_SECRET = process.env.HOOK_SECRET || "";
+const APP_FID = 1041440;
+const APP_URL = process.env.NEXT_PUBLIC_URL || "https://pro.itscashless.com";
+
+const hexToBytes = (hex: string) => new Uint8Array(Buffer.from(hex.replace("0x", ""), "hex"));
+
+function verifySignature(rawBody: string, signature: string): boolean {
+  const expected = crypto
+    .createHmac("sha512", HOOK_SECRET)
+    .update(rawBody)
+    .digest("hex");
+  const a = Buffer.from(expected, "hex");
+  const b = Buffer.from(signature, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
-export async function POST(req: NextRequest) {
+async function reply(parentFid: number, parentHash: string) {
+  if (!SIGNER || !HUB_URL) {
+    throw new Error("SIGNER or HUB_URL not configured");
+  }
+  
+  const privateKeyBytes = hexToBytes(SIGNER);
+  const ed25519Signer = new NobleEd25519Signer(privateKeyBytes);
+  
+  const hexToByteArray = (hex: string): number[] => {
+    if (hex.startsWith("0x")) hex = hex.slice(2);
+    return Array.from({ length: 20 }, (_, i) =>
+      parseInt(hex.substr(i * 2, 2), 16),
+    );
+  };
+  
+  const castBody: CastAddBody = {
+    text: "You can subscribe to farcaster pro for 30 days with this miniapp!",
+    parentCastId: {
+      fid: parentFid,
+      hash: new Uint8Array(hexToByteArray(parentHash)),
+    },
+    embeds: [{ url: APP_URL }],
+    embedsDeprecated: [],
+    mentions: [],
+    mentionsPositions: [],
+    type: 0,
+  };
+
+  const dataOptions = { fid: APP_FID, network: 1 };
+  const castAddReq = await makeCastAdd(castBody, dataOptions, ed25519Signer);
+  const castAdd = castAddReq._unsafeUnwrap();
+  const messageBytes = Buffer.from(Message.encode(castAdd).finish());
+  await axios.post(`${HUB_URL}/v1/submitMessage`, messageBytes, {
+    headers: { "Content-Type": "application/octet-stream" },
+  });
+}
+
+async function like(targetFid: number, targetHash: string) {
+  if (!SIGNER || !HUB_URL) {
+    throw new Error("SIGNER or HUB_URL env var not set");
+  }
+  const privateKeyBytes = hexToBytes(SIGNER);
+  const ed25519Signer = new NobleEd25519Signer(privateKeyBytes);
+  const castBody = {
+    type: 1,
+    targetCastId: {
+      fid: targetFid,
+      hash: hexToBytes(targetHash.replace(/^0x/, "")),
+    },
+  };
+  const dataOptions = { fid: APP_FID, network: 1 };
+  const reactionAddReq = await makeReactionAdd(
+    castBody,
+    dataOptions,
+    ed25519Signer,
+  );
+  const reactionAdd = reactionAddReq._unsafeUnwrap();
+  const messageBytes = Buffer.from(Message.encode(reactionAdd).finish());
+  await axios.post(`${HUB_URL}/v1/submitMessage`, messageBytes, {
+    headers: { "Content-Type": "application/octet-stream" },
+  });
+}
+
+export async function POST(request: NextRequest) {
+  const signature = request.headers.get("x-hypersnap-signature");
+  const rawBody = await request.text();
+  
+  if (!signature || !HOOK_SECRET || !verifySignature(rawBody, signature)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: { data?: { hash?: string; author?: { fid?: number } } } | null;
+  
   try {
-    const tips: TipEvent[] = await req.json();
-    console.log(`Received ${tips.length} tips via webhook`);
+    body = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  
+  const cast = body?.data;
+  const parentHash = cast?.hash;
+  const parentFid = cast?.author?.fid;
+  
+  if (!parentHash || !parentFid) {
+    return NextResponse.json({ error: "Missing cast data" }, { status: 400 });
+  }
+
+  try {
+    await like(parentFid, parentHash);
+
+    const castResponse = await axios.get(
+      `${HUB_URL}/v1/castById?fid=${parentFid}&hash=${parentHash}`
+    );
     
-    let processed = 0;
-    
-    for (const tip of tips) {
-      // 1. Ensure both users exist
-      await prisma.user.upsert({
-        where: { fid: tip.fid },
-        update: { 
-          username: tip.username || undefined 
-        },
-        create: { 
-          fid: tip.fid, 
-          username: tip.username 
-        }
+    const embeds = castResponse.data?.data?.castAddBody?.embeds || [];
+    const hasAppUrl = embeds.some(
+      (embed: { url?: string }) => embed.url === APP_URL
+    );
+
+    if (hasAppUrl) {
+      return NextResponse.json({
+        success: true,
+        message: "Skipped reply, APP_URL exists in embeds",
       });
-      
-      await prisma.user.upsert({
-        where: { fid: tip.recipient_fid },
-        update: { 
-          username: tip.recipient_username || undefined 
-        },
-        create: { 
-          fid: tip.recipient_fid, 
-          username: tip.recipient_username 
-        }
-      });
-      
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-      
-      // 2. Create Tip record
-      await prisma.tip.create({
-        data: {
-          castHash: tip.cast_hash,
-          senderFid: tip.fid,
-          recipientFid: tip.recipient_fid,
-          amount: parseFloat(tip.tip_amount),
-          status: tip.tip_status.toLowerCase() === 'valid' ? TipStatus.valid : TipStatus.invalid,
-          snapshotDay: today
-        }
-      });
-      
-      // 3. Update sender's allowance if valid
-      if (tip.tip_status.toLowerCase() === 'valid' && tip.remaining_tip_allowance) {
-        // We just update the remaining allowance for today
-        await prisma.allowance.updateMany({
-          where: { 
-            userFid: tip.fid,
-            snapshotDay: today
-          },
-          data: {
-            remainingAllowance: parseFloat(tip.remaining_tip_allowance)
-          }
-        });
-      }
-      
-      processed++;
     }
+
+    await reply(parentFid, parentHash);
+    return NextResponse.json({ success: true });
     
-    return NextResponse.json({ status: "ok", received: tips.length, processed });
-  } catch (error) {
-    console.error("Webhook error:", error);
-    return NextResponse.json({ error: "Invalid payload or processing error" }, { status: 400 });
+  } catch (err) {
+    console.error("Webhook processing error:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
