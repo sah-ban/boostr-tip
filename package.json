@@ -9,12 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "prisma": "^6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
