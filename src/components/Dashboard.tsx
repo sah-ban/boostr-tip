@@ -120,13 +120,6 @@ export default function Dashboard({ fid }: DashboardProps) {
         </div>
       </div>
 
-      {/* Rain Points */}
-      <div className="bg-gradient-to-r from-sky-900 to-slate-800 p-4 rounded-xl border border-sky-700 flex justify-between items-center">
-        <div>
-          <p className="text-sm text-sky-200">🌧️ Rain Points</p>
-          <p className="text-2xl font-bold text-white">{points?.rainPoints || '0'}</p>
-        </div>
-      </div>
     </div>
   );
 }

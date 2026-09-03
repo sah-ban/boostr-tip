@@ -106,12 +106,12 @@ async function main() {
   console.log(`Created ${allowanceCount} allowance records`);
 
   // Create points
-  const fidPoints: Record<string, { points: number; rain: number }> = {
-    "1001": { points: 15000, rain: 2500 },
-    "1002": { points: 12000, rain: 3200 },
-    "1003": { points: 8000, rain: 1800 },
-    "1004": { points: 20000, rain: 5000 },
-    "1005": { points: 6000, rain: 900 },
+  const fidPoints: Record<string, { points: number }> = {
+    "1001": { points: 15000 },
+    "1002": { points: 12000 },
+    "1003": { points: 8000 },
+    "1004": { points: 20000 },
+    "1005": { points: 6000 },
   };
   let pointsCount = 0;
   for (const [fid, data] of Object.entries(fidPoints)) {
@@ -123,7 +123,6 @@ async function main() {
         snapshotDay: today,
         points: data.points,
         leaderboardRank: pointsCount + 1,
-        rainPoints: data.rain,
       },
     });
     pointsCount++;

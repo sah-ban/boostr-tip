@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LeaderboardEntry } from '../types';
 
 export default function Leaderboard() {
-  const [activeTab, setActiveTab] = useState<'points' | 'rain' | 'allowance'>('points');
+  const [activeTab, setActiveTab] = useState<'points' | 'allowance'>('points');
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +12,6 @@ export default function Leaderboard() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
         let endpoint = `${baseUrl}/leaderboard`;
-        if (activeTab === 'rain') endpoint = `${baseUrl}/leaderboard/rain`;
         if (activeTab === 'allowance') endpoint = `${baseUrl}/leaderboard/allowance`;
         
         const res = await fetch(endpoint);
@@ -23,7 +22,6 @@ export default function Leaderboard() {
           const formatted = data.leaderboard.map((entry: any, index: number) => {
             let value = '0';
             if (activeTab === 'points') value = entry.points;
-            else if (activeTab === 'rain') value = entry.rainPoints;
             else if (activeTab === 'allowance') value = entry.tipAllowance;
             
             return {
@@ -49,7 +47,7 @@ export default function Leaderboard() {
   return (
     <div className="flex flex-col gap-4 pb-24">
       <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-        {(['points', 'rain', 'allowance'] as const).map(tab => (
+        {(['points', 'allowance'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}

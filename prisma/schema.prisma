@@ -61,7 +61,6 @@ model Points {
   userFid         String
   points          Decimal  @default(0)
   leaderboardRank Int?
-  rainPoints      Decimal  @default(0)
   snapshotDay     DateTime
   createdAt       DateTime @default(now())
 

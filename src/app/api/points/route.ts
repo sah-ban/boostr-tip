@@ -15,13 +15,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!points) {
-      return Response.json({ points: "0", leaderboardRank: null, rainPoints: "0" });
+      return Response.json({ points: "0", leaderboardRank: null });
     }
 
     return Response.json({
       points: points.points.toString(),
       leaderboardRank: points.leaderboardRank,
-      rainPoints: points.rainPoints.toString(),
     });
   } catch (error) {
     console.error("Error fetching points:", error);
