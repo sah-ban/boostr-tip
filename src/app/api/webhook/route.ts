@@ -138,63 +138,64 @@ export async function POST(request: NextRequest) {
     const tipMatch = text.match(/(\d+)\s*\$boostr/i);
     const recipientFid = cast?.parent_author?.fid;
     
-    let replyText = "You can subscribe to farcaster pro for 30 days with this miniapp!";
+    if (!tipMatch || !recipientFid) {
+      return NextResponse.json({ success: true, message: "No tip detected, skipping" });
+    }
 
-    if (tipMatch && recipientFid) {
-      const tipAmount = parseInt(tipMatch[1], 10);
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
+    let replyText = "";
+    const tipAmount = parseInt(tipMatch[1], 10);
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
 
-      // Upsert Users
-      await prisma.user.upsert({
-        where: { fid: senderFid.toString() },
-        update: { username: senderUsername },
-        create: { fid: senderFid.toString(), username: senderUsername }
-      });
-      await prisma.user.upsert({
-        where: { fid: recipientFid.toString() },
-        update: {},
-        create: { fid: recipientFid.toString() }
-      });
+    // Upsert Users
+    await prisma.user.upsert({
+      where: { fid: senderFid.toString() },
+      update: { username: senderUsername },
+      create: { fid: senderFid.toString(), username: senderUsername }
+    });
+    await prisma.user.upsert({
+      where: { fid: recipientFid.toString() },
+      update: {},
+      create: { fid: recipientFid.toString() }
+    });
 
-      // Check allowance
-      const allowance = await prisma.allowance.findUnique({
-        where: {
-          userFid_snapshotDay: {
-            userFid: senderFid.toString(),
-            snapshotDay: today
-          }
-        }
-      });
-
-      const hasAllowance = allowance && Number(allowance.remainingAllowance) >= tipAmount;
-
-      // Create Tip
-      await prisma.tip.create({
-        data: {
-          castHash: senderHash,
-          senderFid: senderFid.toString(),
-          recipientFid: recipientFid.toString(),
-          amount: tipAmount,
-          status: hasAllowance ? TipStatus.valid : TipStatus.invalid,
+    // Check allowance
+    const allowance = await prisma.allowance.findUnique({
+      where: {
+        userFid_snapshotDay: {
+          userFid: senderFid.toString(),
           snapshotDay: today
         }
-      });
-
-      if (hasAllowance) {
-        // Deduct allowance
-        await prisma.allowance.update({
-          where: { id: allowance.id },
-          data: {
-            remainingAllowance: {
-              decrement: tipAmount
-            }
-          }
-        });
-        replyText = `✅ Tipped ${tipAmount} $BOOSTR to @${recipientFid}!\n\nCheck your allowance and tip history in the Farcaster Mini App!`;
-      } else {
-        replyText = `❌ Tip failed. You don't have enough $BOOSTR allowance for today.\n\nCheck your stats in the Farcaster Mini App!`;
       }
+    });
+
+    const hasAllowance = allowance && Number(allowance.remainingAllowance) >= tipAmount;
+
+    // Create Tip
+    await prisma.tip.create({
+      data: {
+        castHash: senderHash,
+        senderFid: senderFid.toString(),
+        recipientFid: recipientFid.toString(),
+        amount: tipAmount,
+        status: hasAllowance ? TipStatus.valid : TipStatus.invalid,
+        snapshotDay: today
+      }
+    });
+
+    if (hasAllowance) {
+      // Deduct allowance
+      await prisma.allowance.update({
+        where: { id: allowance.id },
+        data: {
+          remainingAllowance: {
+            decrement: tipAmount
+          }
+        }
+      });
+      replyText = `✅ Tipped ${tipAmount} $BOOSTR to @${recipientFid}!\n\nCheck your allowance and tip history in the Farcaster Mini App!`;
+    } else {
+      replyText = `❌ Tip failed. You don't have enough $BOOSTR allowance for today.\n\nCheck your stats in the Farcaster Mini App!`;
     }
 
     // Like the incoming cast
