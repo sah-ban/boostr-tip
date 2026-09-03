@@ -8,6 +8,8 @@ import {
 } from "@farcaster/core";
 import axios from "axios";
 import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
+import { TipStatus } from "@prisma/client";
 
 const SIGNER = process.env.SIGNER || "";
 const HUB_URL = process.env.HUB_URL || "";
@@ -28,7 +30,7 @@ function verifySignature(rawBody: string, signature: string): boolean {
   return crypto.timingSafeEqual(a, b);
 }
 
-async function reply(parentFid: number, parentHash: string) {
+async function reply(targetFid: number, targetHash: string, text: string) {
   if (!SIGNER || !HUB_URL) {
     throw new Error("SIGNER or HUB_URL not configured");
   }
@@ -44,10 +46,10 @@ async function reply(parentFid: number, parentHash: string) {
   };
   
   const castBody: CastAddBody = {
-    text: "You can subscribe to farcaster pro for 30 days with this miniapp!",
+    text: text,
     parentCastId: {
-      fid: parentFid,
-      hash: new Uint8Array(hexToByteArray(parentHash)),
+      fid: targetFid,
+      hash: new Uint8Array(hexToByteArray(targetHash)),
     },
     embeds: [{ url: APP_URL }],
     embedsDeprecated: [],
@@ -103,9 +105,11 @@ export async function POST(request: NextRequest) {
     type?: string; 
     data?: { 
       hash?: string; 
-      author?: { fid?: number };
+      author?: { fid?: number; username?: string };
       text?: string;
       embeds?: any[];
+      parent_hash?: string | null;
+      parent_author?: { fid?: number | null };
     } 
   } | null;
   
@@ -116,23 +120,89 @@ export async function POST(request: NextRequest) {
   }
 
   if (body?.type !== "cast.created") {
-    // Only process new casts, ignore likes/recasts if they are sent to this webhook
     return NextResponse.json({ success: true, message: "Ignored non-cast event" });
   }
   
   const cast = body?.data;
-  const parentHash = cast?.hash;
-  const parentFid = cast?.author?.fid;
+  const senderHash = cast?.hash;
+  const senderFid = cast?.author?.fid;
+  const senderUsername = cast?.author?.username;
   
-  if (!parentHash || !parentFid) {
+  if (!senderHash || !senderFid) {
     return NextResponse.json({ error: "Missing cast data" }, { status: 400 });
   }
 
   try {
-    await like(parentFid, parentHash);
+    const text = cast?.text || "";
+    // Match "100 $boostr" or "100$boostr"
+    const tipMatch = text.match(/(\d+)\s*\$boostr/i);
+    const recipientFid = cast?.parent_author?.fid;
+    
+    let replyText = "You can subscribe to farcaster pro for 30 days with this miniapp!";
 
+    if (tipMatch && recipientFid) {
+      const tipAmount = parseInt(tipMatch[1], 10);
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
+      // Upsert Users
+      await prisma.user.upsert({
+        where: { fid: senderFid.toString() },
+        update: { username: senderUsername },
+        create: { fid: senderFid.toString(), username: senderUsername }
+      });
+      await prisma.user.upsert({
+        where: { fid: recipientFid.toString() },
+        update: {},
+        create: { fid: recipientFid.toString() }
+      });
+
+      // Check allowance
+      const allowance = await prisma.allowance.findUnique({
+        where: {
+          userFid_snapshotDay: {
+            userFid: senderFid.toString(),
+            snapshotDay: today
+          }
+        }
+      });
+
+      const hasAllowance = allowance && Number(allowance.remainingAllowance) >= tipAmount;
+
+      // Create Tip
+      await prisma.tip.create({
+        data: {
+          castHash: senderHash,
+          senderFid: senderFid.toString(),
+          recipientFid: recipientFid.toString(),
+          amount: tipAmount,
+          status: hasAllowance ? TipStatus.valid : TipStatus.invalid,
+          snapshotDay: today
+        }
+      });
+
+      if (hasAllowance) {
+        // Deduct allowance
+        await prisma.allowance.update({
+          where: { id: allowance.id },
+          data: {
+            remainingAllowance: {
+              decrement: tipAmount
+            }
+          }
+        });
+        replyText = `✅ Tipped ${tipAmount} $BOOSTR to @${recipientFid}!\n\nCheck your allowance and tip history in the Farcaster Mini App!`;
+      } else {
+        replyText = `❌ Tip failed. You don't have enough $BOOSTR allowance for today.\n\nCheck your stats in the Farcaster Mini App!`;
+      }
+    }
+
+    // Like the incoming cast
+    await like(senderFid, senderHash);
+
+    // Fetch incoming cast from hub to check embeds (to avoid duplicate replies if re-processed)
     const castResponse = await axios.get(
-      `${HUB_URL}/v1/castById?fid=${parentFid}&hash=${parentHash}`
+      `${HUB_URL}/v1/castById?fid=${senderFid}&hash=${senderHash}`
     );
     
     const embeds = castResponse.data?.data?.castAddBody?.embeds || [];
@@ -147,7 +217,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await reply(parentFid, parentHash);
+    // Reply to the incoming cast
+    await reply(senderFid, senderHash, replyText);
+    
     return NextResponse.json({ success: true });
     
   } catch (err) {
