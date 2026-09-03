@@ -20,6 +20,41 @@ const APP_URL = process.env.NEXT_PUBLIC_URL || "https://pro.itscashless.com";
 
 const hexToBytes = (hex: string) => new Uint8Array(Buffer.from(hex.replace("0x", ""), "hex"));
 
+async function syncUserFromHub(fid: string) {
+  try {
+    // If HUB_URL is missing, gracefully fail
+    if (!HUB_URL) return;
+
+    const res = await axios.get(`${HUB_URL}/v1/userDataByFid?fid=${fid}`);
+    const messages = res.data.messages || [];
+    
+    let pfpUrl = undefined;
+    let displayName = undefined;
+    let username = undefined;
+
+    for (const msg of messages) {
+      const type = msg.data?.userDataBody?.type;
+      const value = msg.data?.userDataBody?.value;
+
+      if (type === "USER_DATA_TYPE_PFP" || type === 1) pfpUrl = value;
+      if (type === "USER_DATA_TYPE_DISPLAY" || type === 2) displayName = value;
+      if (type === "USER_DATA_TYPE_USERNAME" || type === 6) username = value;
+    }
+
+    await prisma.user.upsert({
+      where: { fid },
+      update: {
+        ...(pfpUrl && { pfpUrl }),
+        ...(displayName && { displayName }),
+        ...(username && { username }),
+      },
+      create: { fid, pfpUrl, displayName, username },
+    });
+  } catch (err: any) {
+    console.warn(`Could not sync user ${fid} from Hub:`, err.message);
+  }
+}
+
 function verifySignature(rawBody: string, signature: string): boolean {
   const expected = crypto
     .createHmac("sha512", HOOK_SECRET)
@@ -147,17 +182,12 @@ export async function POST(request: NextRequest) {
     const tipAmount = parseInt(tipMatch[1], 10);
     const currentPeriod = getCurrentPeriodStart();
 
-    // Upsert Users
-    await prisma.user.upsert({
-      where: { fid: senderFid.toString() },
-      update: { username: senderUsername },
-      create: { fid: senderFid.toString(), username: senderUsername }
-    });
-    await prisma.user.upsert({
-      where: { fid: recipientFid.toString() },
-      update: {},
-      create: { fid: recipientFid.toString() }
-    });
+    // Upsert Users by fetching rich data from the Farcaster Hub
+    // We execute these asynchronously in parallel
+    await Promise.all([
+      syncUserFromHub(senderFid.toString()),
+      syncUserFromHub(recipientFid.toString())
+    ]);
 
     // Check allowance
     const allowance = await prisma.allowance.findUnique({
