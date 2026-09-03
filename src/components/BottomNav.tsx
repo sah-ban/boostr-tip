@@ -1,14 +1,13 @@
 import React from 'react';
 
 type BottomNavProps = {
-  activeTab: 'home' | 'allowance' | 'tips' | 'leaders';
-  onChange: (tab: 'home' | 'allowance' | 'tips' | 'leaders') => void;
+  activeTab: 'home' | 'tips' | 'leaders';
+  onChange: (tab: 'home' | 'tips' | 'leaders') => void;
 };
 
 export default function BottomNav({ activeTab, onChange }: BottomNavProps) {
   const tabs = [
     { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'allowance', label: 'Allowance', icon: '💰' },
     { id: 'tips', label: 'Tips', icon: '💸' },
     { id: 'leaders', label: 'Leaders', icon: '🏆' },
   ] as const;

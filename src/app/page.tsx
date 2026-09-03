@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import BottomNav from '@/components/BottomNav';
 import Dashboard from '@/components/Dashboard';
-import AllowanceTracker from '@/components/AllowanceTracker';
 import TipsTracker from '@/components/TipsTracker';
 import Leaderboard from '@/components/Leaderboard';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'home' | 'allowance' | 'tips' | 'leaders'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'tips' | 'leaders'>('home');
   const [fid, setFid] = useState<string>('1001'); // Default to seeded test user
 
   useEffect(() => {
@@ -29,7 +28,6 @@ export default function Home() {
         {/* Content Area */}
         <div className="p-4">
           {activeTab === 'home' && <Dashboard fid={fid} />}
-          {activeTab === 'allowance' && <AllowanceTracker fid={fid} />}
           {activeTab === 'tips' && <TipsTracker fid={fid} />}
           {activeTab === 'leaders' && <Leaderboard />}
         </div>
