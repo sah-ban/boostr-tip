@@ -3,10 +3,12 @@ import axios from "axios";
 import { createPublicClient, http, parseAbi, formatUnits } from "viem";
 import { base } from "viem/chains"; // Adjust if not on Base
 
+import { getCurrentPeriodStart } from "../lib/dateUtils";
+
 const prisma = new PrismaClient();
 
 // Configuration
-const TOTAL_DAILY_ALLOWANCE = 100_000;
+const TOTAL_WEEKLY_ALLOWANCE = 100_000;
 const HUB_URL = process.env.HUB_URL || "https://nemes.farcaster.xyz:2281"; // Fallback to public hub if not set
 const RPC_URL = process.env.RPC_URL || "https://mainnet.base.org"; // Assuming Base
 const BOOSTR_CONTRACT_ADDRESS = process.env.BOOSTR_CONTRACT_ADDRESS as `0x${string}`;
@@ -27,9 +29,8 @@ const publicClient = createPublicClient({
 });
 
 async function main() {
-  console.log("🚀 Starting Daily Allowance Allotment...");
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  console.log("🚀 Starting Weekly Allowance Allotment...");
+  const currentPeriod = getCurrentPeriodStart();
 
   // 1. Fetch opted-in users
   const users = await prisma.user.findMany({
@@ -111,14 +112,14 @@ async function main() {
     
     if (totalHoldings > 0 && holding > 0) {
       const percentage = holding / totalHoldings;
-      allowanceAmount = Math.floor(percentage * TOTAL_DAILY_ALLOWANCE);
+      allowanceAmount = Math.floor(percentage * TOTAL_WEEKLY_ALLOWANCE);
     }
 
     await prisma.allowance.upsert({
       where: {
         userFid_snapshotDay: {
           userFid: fid,
-          snapshotDay: today
+          snapshotDay: currentPeriod
         }
       },
       update: {
@@ -128,7 +129,7 @@ async function main() {
       },
       create: {
         userFid: fid,
-        snapshotDay: today,
+        snapshotDay: currentPeriod,
         tipAllowance: allowanceAmount,
         remainingAllowance: allowanceAmount,
         userRank: rank

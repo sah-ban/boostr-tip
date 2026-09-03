@@ -31,7 +31,7 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
 
   return (
     <div className="flex flex-col gap-4 pb-24">
-      <h2 className="text-2xl font-bold mb-2">Allowance History</h2>
+      <h2 className="text-2xl font-bold mb-2">Weekly Allowance History</h2>
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

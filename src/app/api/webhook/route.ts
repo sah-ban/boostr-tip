@@ -10,6 +10,7 @@ import axios from "axios";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { TipStatus } from "@prisma/client";
+import { getCurrentPeriodStart } from "@/lib/dateUtils";
 
 const SIGNER = process.env.SIGNER || "";
 const HUB_URL = process.env.HUB_URL || "";
@@ -144,8 +145,7 @@ export async function POST(request: NextRequest) {
 
     let replyText = "";
     const tipAmount = parseInt(tipMatch[1], 10);
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    const currentPeriod = getCurrentPeriodStart();
 
     // Upsert Users
     await prisma.user.upsert({
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
       where: {
         userFid_snapshotDay: {
           userFid: senderFid.toString(),
-          snapshotDay: today
+          snapshotDay: currentPeriod
         }
       }
     });
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
         recipientFid: recipientFid.toString(),
         amount: tipAmount,
         status: hasAllowance ? TipStatus.valid : TipStatus.invalid,
-        snapshotDay: today
+        snapshotDay: currentPeriod
       }
     });
 
