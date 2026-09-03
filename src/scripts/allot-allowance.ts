@@ -65,7 +65,7 @@ async function main() {
       const res = await axios.get(`${HUB_URL}/v1/verificationsByFid?fid=${user.fid}`);
       const messages = res.data.messages || [];
       
-      let userTotalBalance = 0n;
+      let userTotalBalance = BigInt(0);
 
       for (const msg of messages) {
         const addressBytes = msg.data?.verificationAddAddressBody?.address;
