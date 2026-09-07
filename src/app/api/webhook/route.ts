@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
   
   try {
     body = JSON.parse(rawBody);
+    console.log("Incoming Webhook Payload:", JSON.stringify(body, null, 2));
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
