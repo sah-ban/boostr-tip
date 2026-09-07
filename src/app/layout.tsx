@@ -25,18 +25,20 @@ export const metadata: Metadata = {
   description: "Farcaster Mini App for $BOOSTR tipping",
 };
 
+import { Providers } from "./providers/providers";
+
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-slate-900 text-white">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

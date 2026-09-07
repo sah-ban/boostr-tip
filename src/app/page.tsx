@@ -5,15 +5,23 @@ import BottomNav from '@/components/BottomNav';
 import Dashboard from '@/components/Dashboard';
 import TipsTracker from '@/components/TipsTracker';
 import Leaderboard from '@/components/Leaderboard';
+import { useFrameContext } from './providers/providers';
+import sdk from '@farcaster/miniapp-sdk';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'home' | 'tips' | 'leaders'>('home');
-  const [fid, setFid] = useState<string>('1001'); // Default to seeded test user
+  const [fid, setFid] = useState<string>('1001'); // Default fallback
+  const frameContext = useFrameContext();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('fid')) setFid(params.get('fid')!);
-  }, []);
+    if (frameContext?.user?.fid) {
+      setFid(frameContext.user.fid.toString());
+    } else {
+      // Fallback for local testing
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('fid')) setFid(params.get('fid')!);
+    }
+  }, [frameContext]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-sky-500/30">
