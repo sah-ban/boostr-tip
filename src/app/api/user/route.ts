@@ -47,7 +47,28 @@ export async function GET(request: NextRequest) {
           pfpUrl,
           displayName,
           username,
+          points: {
+            create: {
+              points: 0,
+              snapshotDay: new Date()
+            }
+          }
         },
+      });
+    }
+
+    // Ensure they have a points row
+    const userPoints = await prisma.points.findFirst({
+      where: { userFid: fid },
+    });
+
+    if (!userPoints) {
+      await prisma.points.create({
+        data: {
+          userFid: fid,
+          points: 0,
+          snapshotDay: new Date(),
+        }
       });
     }
 
