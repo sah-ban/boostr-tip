@@ -15,7 +15,7 @@ import { getCurrentPeriodStart } from "@/lib/dateUtils";
 const SIGNER = process.env.SIGNER || "";
 const HUB_URL = process.env.HUB_URL || "";
 const HOOK_SECRET = process.env.HOOK_SECRET || "";
-const APP_FID = parseInt(process.env.BOT_FID || "545039", 10);
+const BOT_FID = parseInt(process.env.BOT_FID || "545039", 10);
 const APP_URL = process.env.NEXT_PUBLIC_URL || "https://pro.itscashless.com";
 
 const hexToBytes = (hex: string) => new Uint8Array(Buffer.from(hex.replace("0x", ""), "hex"));
@@ -95,7 +95,7 @@ async function reply(targetFid: number, targetHash: string, text: string) {
     type: 0,
   };
 
-  const dataOptions = { fid: APP_FID, network: 1 };
+  const dataOptions = { fid: BOT_FID, network: 1 };
   const castAddReq = await makeCastAdd(castBody, dataOptions, ed25519Signer);
   const castAdd = castAddReq._unsafeUnwrap();
   const messageBytes = Buffer.from(Message.encode(castAdd).finish());
@@ -117,7 +117,7 @@ async function like(targetFid: number, targetHash: string) {
       hash: hexToBytes(targetHash.replace(/^0x/, "")),
     },
   };
-  const dataOptions = { fid: APP_FID, network: 1 };
+  const dataOptions = { fid: BOT_FID, network: 1 };
   const reactionAddReq = await makeReactionAdd(
     castBody,
     dataOptions,
