@@ -131,10 +131,15 @@ async function like(targetFid: number, targetHash: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const signature = request.headers.get("x-hypersnap-signature");
+  const signature = request.headers.get("x-hypersnap-signature") || request.headers.get("x-neynar-signature");
   const rawBody = await request.text();
+
+  console.log("--- INCOMING WEBHOOK ---");
+  console.log("Signature Header:", signature);
+  console.log("Raw Body:", rawBody);
   
   if (!signature || !verifySignature(rawBody, signature)) {
+    console.error("Webhook Unauthorized: Invalid or missing signature");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
