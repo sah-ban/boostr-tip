@@ -18,11 +18,16 @@ export async function GET(request: NextRequest) {
     
     // De-duplicate by userFid taking the latest snapshot due to order
     const seen = new Set();
-    const leaderboard = topPoints.filter(p => {
+    const latestPoints = topPoints.filter(p => {
       if (seen.has(p.userFid)) return false;
       seen.add(p.userFid);
       return true;
-    }).slice(0, 100);
+    });
+
+    // Sort by actual points descending
+    latestPoints.sort((a, b) => Number(b.points) - Number(a.points));
+
+    const leaderboard = latestPoints.slice(0, 100);
 
     return Response.json({ leaderboard });
   } catch (error) {

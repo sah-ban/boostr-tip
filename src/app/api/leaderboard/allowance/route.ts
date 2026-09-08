@@ -16,12 +16,18 @@ export async function GET(request: NextRequest) {
       }
     });
     
+    // De-duplicate by userFid taking the latest snapshot due to order
     const seen = new Set();
-    const leaderboard = topAllowances.filter(a => {
+    const latestAllowances = topAllowances.filter(a => {
       if (seen.has(a.userFid)) return false;
       seen.add(a.userFid);
       return true;
-    }).slice(0, 100);
+    });
+
+    // Sort by actual allowance descending
+    latestAllowances.sort((a, b) => Number(b.tipAllowance) - Number(a.tipAllowance));
+
+    const leaderboard = latestAllowances.slice(0, 100);
 
     return Response.json({ leaderboard });
   } catch (error) {
