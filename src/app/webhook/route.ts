@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
   console.log("--- INCOMING WEBHOOK ---");
+  console.log("Headers:", Object.fromEntries(request.headers.entries()));
   console.log("Signature Header:", signature);
   console.log("Raw Body:", rawBody);
   
