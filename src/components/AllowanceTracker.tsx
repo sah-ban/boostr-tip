@@ -38,22 +38,22 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
             <thead className="bg-slate-900 text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Date</th>
-                <th className="px-4 py-3 font-medium">Rank</th>
                 <th className="px-4 py-3 font-medium">Allowance</th>
                 <th className="px-4 py-3 font-medium">Remaining</th>
+                <th className="px-4 py-3 font-medium">Points</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
-              {history.map((entry) => {
+              {history.map((entry: any) => {
                 const date = new Date(entry.snapshotDay);
                 const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 
                 return (
                   <tr key={entry.id} className="hover:bg-slate-700/50 transition-colors">
                     <td className="px-4 py-3 text-slate-300">{formattedDate}</td>
-                    <td className="px-4 py-3 text-slate-300">{entry.userRank || '-'}</td>
                     <td className="px-4 py-3 font-medium text-sky-400">{entry.tipAllowance}</td>
                     <td className="px-4 py-3 font-medium text-slate-300">{entry.remainingAllowance}</td>
+                    <td className="px-4 py-3 font-medium text-emerald-400">+{entry.points || '0'}</td>
                   </tr>
                 );
               })}

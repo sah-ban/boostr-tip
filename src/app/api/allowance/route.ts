@@ -9,12 +9,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const allowances = await prisma.allowance.findMany({
-      where: { userFid: fid },
-      orderBy: { snapshotDay: "desc" },
+    const [allowances, points] = await Promise.all([
+      prisma.allowance.findMany({ where: { userFid: fid }, orderBy: { snapshotDay: "desc" } }),
+      prisma.points.findMany({ where: { userFid: fid }, orderBy: { snapshotDay: "desc" } })
+    ]);
+
+    const mergedAllowances = allowances.map(a => {
+      const p = points.find(p => p.snapshotDay.getTime() === a.snapshotDay.getTime());
+      return {
+        ...a,
+        points: p ? p.points.toString() : "0"
+      };
     });
 
-    return Response.json({ allowances });
+    return Response.json({ allowances: mergedAllowances });
   } catch (error) {
     console.error("Error fetching allowance:", error);
     return Response.json({ error: "An unexpected error occurred" }, { status: 500 });

@@ -17,6 +17,7 @@ model User {
   isAllowanceEnabled Boolean  @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  allTimePoints   Decimal     @default(0)
 
   tipsSent        Tip[]       @relation("TipSender")
   tipsReceived    Tip[]       @relation("TipRecipient")
