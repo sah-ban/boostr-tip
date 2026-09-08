@@ -15,7 +15,7 @@ import { getCurrentPeriodStart } from "@/lib/dateUtils";
 const SIGNER = process.env.SIGNER || "";
 const HUB_URL = process.env.HUB_URL || "";
 const HOOK_SECRET = process.env.HOOK_SECRET || "";
-const APP_FID = 1041440;
+const APP_FID = parseInt(process.env.BOT_FID || "545039", 10);
 const APP_URL = process.env.NEXT_PUBLIC_URL || "https://pro.itscashless.com";
 
 const hexToBytes = (hex: string) => new Uint8Array(Buffer.from(hex.replace("0x", ""), "hex"));
@@ -56,6 +56,7 @@ async function syncUserFromHub(fid: string) {
 }
 
 function verifySignature(rawBody: string, signature: string): boolean {
+  if (!HOOK_SECRET) return false;
   const expected = crypto
     .createHmac("sha512", HOOK_SECRET)
     .update(rawBody)
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-hypersnap-signature");
   const rawBody = await request.text();
   
-  if (!signature || !HOOK_SECRET || !verifySignature(rawBody, signature)) {
+  if (!signature || !verifySignature(rawBody, signature)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
