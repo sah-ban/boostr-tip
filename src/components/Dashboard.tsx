@@ -135,7 +135,7 @@ export default function Dashboard({ fid }: DashboardProps) {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-          <p className="text-xs text-slate-400 mb-1">Allowance / Rem</p>
+          <p className="text-xs text-slate-400 mb-1">Allowance (Remaining)</p>
           <p className="text-lg font-bold text-sky-400">
             {allowance?.tipAllowance || '0'} / {allowance?.remainingAllowance || '0'}
           </p>
