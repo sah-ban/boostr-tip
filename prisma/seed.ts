@@ -1,3 +1,4 @@
+import { getCurrentPeriodStart } from "../src/lib/dateUtils";
 import { PrismaClient, TipStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -115,12 +116,13 @@ async function main() {
   };
   let pointsCount = 0;
   for (const [fid, data] of Object.entries(fidPoints)) {
+    const currentPeriod = getCurrentPeriodStart();
     await prisma.points.upsert({
-      where: { userFid_snapshotDay: { userFid: fid, snapshotDay: today } },
+      where: { userFid_snapshotDay: { userFid: fid, snapshotDay: currentPeriod } },
       update: {},
       create: {
         userFid: fid,
-        snapshotDay: today,
+        snapshotDay: currentPeriod,
         points: data.points,
         leaderboardRank: pointsCount + 1,
       },
