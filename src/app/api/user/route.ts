@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
           points: {
             create: {
               points: 0,
-              snapshotDay: new Date()
+              snapshotDay: require('@/lib/dateUtils').getCurrentPeriodStart()
             }
           }
         },
@@ -63,11 +63,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!userPoints) {
+      const { getCurrentPeriodStart } = require('@/lib/dateUtils');
       await prisma.points.create({
         data: {
           userFid: fid,
           points: 0,
-          snapshotDay: new Date(),
+          snapshotDay: getCurrentPeriodStart(),
         }
       });
     }
