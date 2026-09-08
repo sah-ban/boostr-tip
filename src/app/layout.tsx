@@ -20,9 +20,27 @@ export const viewport: Viewport = {
   themeColor: '#0f172a', // slate-900
 };
 
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://pro.itscashless.com";
+
 export const metadata: Metadata = {
   title: "Zabal-Tip $BOOSTR",
   description: "Farcaster Mini App for $BOOSTR tipping",
+  other: {
+    "fc:frame": JSON.stringify({
+      version: "next",
+      imageUrl: `${appUrl}/splash-new.png`,
+      button: {
+        title: "Open Tracker",
+        action: {
+          type: "launch_frame",
+          name: "BOOSTR",
+          url: appUrl,
+          splashImageUrl: `${appUrl}/splash-new.png`,
+          splashBackgroundColor: "#0f172a",
+        },
+      },
+    }),
+  },
 };
 
 import { Providers } from "./providers/providers";
