@@ -10,16 +10,27 @@ import sdk from '@farcaster/miniapp-sdk';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'home' | 'tips' | 'leaders'>('home');
-  const [fid, setFid] = useState<string>('1001'); // Default fallback
+  const [fid, setFid] = useState<string | null>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
   const frameContext = useFrameContext();
 
   useEffect(() => {
+    // Wait for the Farcaster Frame SDK context to resolve
     if (frameContext?.user?.fid) {
       setFid(frameContext.user.fid.toString());
+      setSdkLoaded(true);
     } else {
-      // Fallback for local testing
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('fid')) setFid(params.get('fid')!);
+      // If we are not in the Farcaster app, wait a moment to see if context arrives
+      // If it doesn't, fallback to URL params for local browser testing
+      const timer = setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('fid')) {
+          setFid(params.get('fid')!);
+        }
+        setSdkLoaded(true);
+      }, 500); // 500ms delay to give SDK time to inject context
+      
+      return () => clearTimeout(timer);
     }
   }, [frameContext]);
 
@@ -35,9 +46,15 @@ export default function Home() {
 
         {/* Content Area */}
         <div className="p-4">
-          {activeTab === 'home' && <Dashboard fid={fid} />}
-          {activeTab === 'tips' && <TipsTracker fid={fid} />}
-          {activeTab === 'leaders' && <Leaderboard />}
+          {!sdkLoaded || !fid ? (
+             <div className="p-8 text-center text-slate-400 animate-pulse">Connecting to Farcaster...</div>
+          ) : (
+            <>
+              {activeTab === 'home' && <Dashboard fid={fid} />}
+              {activeTab === 'tips' && <TipsTracker fid={fid} />}
+              {activeTab === 'leaders' && <Leaderboard />}
+            </>
+          )}
         </div>
 
         {/* Navigation */}
