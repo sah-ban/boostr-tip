@@ -188,8 +188,14 @@ export async function POST(request: NextRequest) {
     const tipMatch = text.match(/(\d+)\s*\$boostr/i);
     const recipientFid = cast?.parent_author?.fid;
     
+    // Skip if no tip detected, or if it's not a reply
     if (!tipMatch || !recipientFid) {
-      return NextResponse.json({ success: true, message: "No tip detected, skipping" });
+      return NextResponse.json({ success: true, message: "No tip detected or not a reply, skipping" });
+    }
+
+    // Prevent users from tipping themselves
+    if (senderFid === recipientFid) {
+      return NextResponse.json({ success: true, message: "Cannot tip yourself" });
     }
 
     let replyText = "";
