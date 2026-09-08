@@ -18,9 +18,19 @@ export async function GET(request: NextRequest) {
       return Response.json({ points: "0", leaderboardRank: null });
     }
 
+    // Dynamically calculate rank by counting users with more points in this period
+    const higherRankCount = await prisma.points.count({
+      where: {
+        snapshotDay: points.snapshotDay,
+        points: { gt: points.points }
+      }
+    });
+    
+    const trueRank = higherRankCount + 1;
+
     return Response.json({
       points: points.points.toString(),
-      leaderboardRank: points.leaderboardRank,
+      leaderboardRank: trueRank,
     });
   } catch (error) {
     console.error("Error fetching points:", error);
