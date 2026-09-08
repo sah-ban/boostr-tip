@@ -18,7 +18,7 @@ export async function GET() {
       buttonTitle: "Open Tracker",
       splashImageUrl: `${appUrl}/splash-new.png`,
       splashBackgroundColor: "#0f172a",
-      webhookUrl: `${appUrl}/api/webhook`,
+      webhookUrl: `${appUrl}/webhook`,
       subtitle: "Track BOOSTR tips and stats",
       description: "Farcaster Mini App for BOOSTR tipping leaderboards and allowances",
       primaryCategory: "utility",
