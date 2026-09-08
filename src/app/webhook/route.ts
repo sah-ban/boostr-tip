@@ -177,7 +177,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    
     const text = cast?.text || "";
+    
+    // Check if this cast is a bot reply by looking for our app embed
+    const embeds = cast?.embeds || [];
+    const hasAppUrl = embeds.some((e: any) => e.url === APP_URL);
+    if (hasAppUrl) {
+      return NextResponse.json({ success: true, message: "Skipped processing, this is a bot reply" });
+    }
+
     // Match "100 $boostr" or "100$boostr"
     const tipMatch = text.match(/(\d+)\s*\$boostr/i);
     const recipientFid = cast?.parent_author?.fid;
