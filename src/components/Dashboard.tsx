@@ -16,6 +16,7 @@ export default function Dashboard({ fid }: DashboardProps) {
   const [tipsReceived, setTipsReceived] = useState<number>(0);
   const [countdown, setCountdown] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function Dashboard({ fid }: DashboardProps) {
     
     // Optimistic UI update
     setUser({ ...user, isAllowanceEnabled: !previousState });
+    setToggling(true);
     
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -121,6 +123,8 @@ export default function Dashboard({ fid }: DashboardProps) {
       console.error(err);
       // Revert on error
       setUser({ ...user, isAllowanceEnabled: previousState });
+    } finally {
+      setToggling(false);
     }
   };
 
