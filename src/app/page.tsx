@@ -39,7 +39,7 @@ export default function Home() {
       <main className="max-w-md mx-auto min-h-screen relative shadow-2xl bg-slate-900">
         {/* Header */}
         <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-4">
-          <h1 className="text-xl font-bold text-center bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold text-center text-sky-400">
             $BOOSTR Tip Tracker
           </h1>
         </header>
