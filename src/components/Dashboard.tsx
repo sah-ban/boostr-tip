@@ -158,24 +158,6 @@ export default function Dashboard({ fid }: DashboardProps) {
         </button>
       </div>
 
-      {/* Price Widget */}
-      {price && (
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
-          <div>
-            <p className="text-sm text-slate-400">$BOOSTR Price</p>
-            <p className="text-2xl font-bold">${price.price.toFixed(4)}</p>
-          </div>
-          <div className="text-right">
-            <p className={`text-sm ${price.priceChange1h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              1h: {price.priceChange1h >= 0 ? '+' : ''}{price.priceChange1h}%
-            </p>
-            <p className={`text-sm ${price.priceChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              24h: {price.priceChange24h >= 0 ? '+' : ''}{price.priceChange24h}%
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Stats Grid */}
       <div className="flex justify-between items-end mb-[-8px]">
         <div>
@@ -214,6 +196,24 @@ export default function Dashboard({ fid }: DashboardProps) {
           <p className="text-lg font-bold text-sky-400">{tipsReceived}</p>
         </div>
       </div>
+
+      {/* Price Widget */}
+      {price && (
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-slate-400">$BOOSTR Price</p>
+            <p className="text-2xl font-bold">${price.price.toFixed(4)}</p>
+          </div>
+          <div className="text-right">
+            <p className={`text-sm ${price.priceChange1h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              1h: {price.priceChange1h >= 0 ? '+' : ''}{price.priceChange1h}%
+            </p>
+            <p className={`text-sm ${price.priceChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              24h: {price.priceChange24h >= 0 ? '+' : ''}{price.priceChange24h}%
+            </p>
+          </div>
+        </div>
+      )}
 
     </div>
   );
