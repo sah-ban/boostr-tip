@@ -52,24 +52,33 @@ export default function TipsTracker({ fid }: TipsTrackerProps) {
         <div className="p-4 text-center">Loading tips...</div>
       ) : (
         <div className="flex flex-col gap-3">
-          {tips.map(tip => (
-            <div key={tip.id} className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
-              <div>
-                <p className="font-medium">
-                  {activeTab === 'received' ? `@${tip.sender?.username || 'unknown'}` : `@${tip.recipient?.username || 'unknown'}`}
-                </p>
-                <a href={`https://warpcast.com/~/conversations/${tip.castHash}`} target="_blank" rel="noreferrer" className="text-xs text-sky-400 hover:underline">
-                  View Cast
-                </a>
+          {tips.map((tip: any) => {
+            const date = new Date(tip.snapshotDay);
+            const weekLabel = `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+            
+            return (
+              <div key={tip.id} className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+                <div>
+                  <p className="font-medium">
+                    {activeTab === 'received' ? `@${tip.sender?.username || 'unknown'}` : `@${tip.recipient?.username || 'unknown'}`}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-slate-400">{weekLabel}</p>
+                    <span className="text-xs text-slate-600">•</span>
+                    <a href={`https://warpcast.com/~/conversations/${tip.castHash}`} target="_blank" rel="noreferrer" className="text-xs text-sky-400 hover:underline">
+                      View Cast
+                    </a>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold">{tip.amount} $BOOSTR</p>
+                  <span className={`text-xs px-2 py-1 rounded-full ${tip.status === 'valid' ? 'bg-emerald-400/20 text-emerald-400' : 'bg-red-400/20 text-red-400'}`}>
+                    {tip.status}
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold">{tip.amount} $BOOSTR</p>
-                <span className={`text-xs px-2 py-1 rounded-full ${tip.status === 'valid' ? 'bg-emerald-400/20 text-emerald-400' : 'bg-red-400/20 text-red-400'}`}>
-                  {tip.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {tips.length === 0 && <p className="text-center text-slate-400 py-8">No tips found</p>}
         </div>
       )}

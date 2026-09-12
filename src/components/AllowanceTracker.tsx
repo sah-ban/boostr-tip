@@ -46,7 +46,7 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
             <tbody className="divide-y divide-slate-700">
               {history.map((entry: any) => {
                 const date = new Date(entry.snapshotDay);
-                const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const formattedDate = `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
                 
                 return (
                   <tr key={entry.id} className="hover:bg-slate-700/50 transition-colors">
