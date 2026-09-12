@@ -8,7 +8,10 @@ export async function GET(request: NextRequest) {
     const currentPeriod = getCurrentPeriodStart();
     
     const leaderboard = await prisma.points.findMany({
-      where: { snapshotDay: currentPeriod },
+      where: { 
+        snapshotDay: currentPeriod,
+        points: { gt: 0 }
+      },
       orderBy: { points: "desc" },
       take: 100,
       include: {
