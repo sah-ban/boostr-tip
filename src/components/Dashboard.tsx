@@ -185,16 +185,28 @@ export default function Dashboard({ fid }: DashboardProps) {
             {points?.points || '0'} <span className="text-sm font-normal text-slate-300">({points?.leaderboardRank || '-'})</span>
           </p>
         </div>
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-          <p className="text-xs text-slate-400 mb-1">Tips Sent</p>
-          <p className="text-lg font-bold text-sky-400">
-            {tipsSent}
-            {invalidTipsSent > 0 && <span className="text-xs font-normal text-red-400 ml-2">({invalidTipsSent} invalid)</span>}
-          </p>
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col justify-center">
+          <p className="text-xs text-slate-400 mb-2 font-semibold">Tips Sent</p>
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Total</span>
+              <span className="font-bold text-white">{tipsSent + invalidTipsSent}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Valid</span>
+              <span className="font-bold text-emerald-400">{tipsSent}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Invalid</span>
+              <span className="font-bold text-red-400">{invalidTipsSent}</span>
+            </div>
+          </div>
         </div>
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-          <p className="text-xs text-slate-400 mb-1">Tips Received</p>
-          <p className="text-lg font-bold text-sky-400">{tipsReceived}</p>
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col justify-center">
+          <p className="text-xs text-slate-400 mb-2 font-semibold">Tips Received</p>
+          <div className="flex items-center justify-between h-full">
+            <span className="text-3xl font-bold text-sky-400">{tipsReceived}</span>
+          </div>
         </div>
       </div>
 
