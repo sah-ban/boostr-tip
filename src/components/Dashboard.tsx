@@ -133,6 +133,15 @@ export default function Dashboard({ fid }: DashboardProps) {
       )}
 
       {/* Stats Grid */}
+      <div className="flex justify-between items-end mb-[-8px]">
+        <h3 className="text-lg font-bold">Weekly Stats</h3>
+        <p className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-1 rounded-full">
+          {allowance?.snapshotDay 
+            ? `Week of ${new Date(allowance.snapshotDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` 
+            : 'Current Week'}
+        </p>
+      </div>
+      
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
           <p className="text-xs text-slate-400 mb-1">Allowance (Remaining)</p>
