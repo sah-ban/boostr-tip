@@ -128,15 +128,13 @@ export default function Dashboard({ fid }: DashboardProps) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
   }
   
-  if (error) {
-    return <div className="p-4 text-center text-red-400">Error: {error}</div>;
-  }
+  if (error) return <div className="p-4 text-center text-red-400">{error}</div>;
 
   return (
-    <div className="flex flex-col gap-6 pb-24">
+    <div className="flex flex-col gap-3 pb-24">
       {/* Profile Section */}
       <div className="flex items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
-        <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center text-2xl">
+        <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center text-2xl shrink-0">
           {user?.pfpUrl ? <img src={user.pfpUrl} alt="pfp" className="rounded-full w-full h-full object-cover" /> : '👤'}
         </div>
         <div>
@@ -153,14 +151,19 @@ export default function Dashboard({ fid }: DashboardProps) {
         </div>
         <button 
           onClick={toggleAllowance}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${user?.isAllowanceEnabled ? 'bg-emerald-500' : 'bg-slate-600'}`}
+          disabled={toggling}
+          className={`w-12 h-6 rounded-full p-1 transition-colors ${
+            user?.isAllowanceEnabled ? 'bg-emerald-500' : 'bg-slate-600'
+          }`}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${user?.isAllowanceEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+            user?.isAllowanceEnabled ? 'translate-x-6' : 'translate-x-0'
+          }`} />
         </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="flex justify-between items-end mb-[-8px]">
+      {/* Stats Grid Header */}
+      <div className="flex justify-between items-end mt-2">
         <div>
           <h3 className="text-lg font-bold">Weekly Stats</h3>
           <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Resets in {countdown}</p>
@@ -172,7 +175,8 @@ export default function Dashboard({ fid }: DashboardProps) {
         </p>
       </div>
       
-      <div className="grid grid-cols-2 gap-4">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
           <p className="text-xs text-slate-400 mb-1">Allowance (Remaining)</p>
           <p className="text-lg font-bold text-sky-400">
@@ -212,7 +216,7 @@ export default function Dashboard({ fid }: DashboardProps) {
 
       {/* Price Widget */}
       {price && (
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center mt-2">
           <div>
             <p className="text-sm text-slate-400">$BOOSTR Price</p>
             <p className="text-2xl font-bold">${price.price.toFixed(4)}</p>

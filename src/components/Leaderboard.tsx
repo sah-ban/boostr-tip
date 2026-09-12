@@ -86,7 +86,7 @@ export default function Leaderboard({ fid }: LeaderboardProps) {
   }, [activeTab]);
 
   return (
-    <div className="flex flex-col gap-4 pb-24">
+    <div className="flex flex-col gap-3 pb-24">
       <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
         {(['points', 'allowance'] as const).map(tab => (
           <button
