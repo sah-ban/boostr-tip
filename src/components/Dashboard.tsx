@@ -11,6 +11,7 @@ export default function Dashboard({ fid }: DashboardProps) {
   const [allowance, setAllowance] = useState<AllowanceData | null>(null);
   const [points, setPoints] = useState<PointsData | null>(null);
   const [tipsSent, setTipsSent] = useState<number>(0);
+  const [invalidTipsSent, setInvalidTipsSent] = useState<number>(0);
   const [tipsReceived, setTipsReceived] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function Dashboard({ fid }: DashboardProps) {
         
         if (tipsSentRes && tipsSentRes.tips) {
           setTipsSent(tipsSentRes.tips.filter((t: any) => t.status === 'valid').length);
+          setInvalidTipsSent(tipsSentRes.tips.filter((t: any) => t.status === 'invalid').length);
         }
         
         if (tipsReceivedRes && tipsReceivedRes.tips) {
@@ -156,8 +158,11 @@ export default function Dashboard({ fid }: DashboardProps) {
           </p>
         </div>
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-          <p className="text-xs text-slate-400 mb-1">Valid Tips Sent</p>
-          <p className="text-lg font-bold text-sky-400">{tipsSent}</p>
+          <p className="text-xs text-slate-400 mb-1">Tips Sent</p>
+          <p className="text-lg font-bold text-sky-400">
+            {tipsSent}
+            {invalidTipsSent > 0 && <span className="text-xs font-normal text-red-400 ml-2">({invalidTipsSent} invalid)</span>}
+          </p>
         </div>
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
           <p className="text-xs text-slate-400 mb-1">Tips Received</p>
