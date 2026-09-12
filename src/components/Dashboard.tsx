@@ -13,8 +13,37 @@ export default function Dashboard({ fid }: DashboardProps) {
   const [tipsSent, setTipsSent] = useState<number>(0);
   const [invalidTipsSent, setInvalidTipsSent] = useState<number>(0);
   const [tipsReceived, setTipsReceived] = useState<number>(0);
+  const [countdown, setCountdown] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const d = new Date();
+      const now = d.getTime();
+      d.setUTCHours(0, 0, 0, 0);
+      const day = d.getUTCDay();
+      const daysUntilMonday = (8 - day) % 7 || 7;
+      d.setUTCDate(d.getUTCDate() + daysUntilMonday);
+      const target = d.getTime();
+      
+      const diff = target - now;
+      if (diff <= 0) {
+        setCountdown('Resetting...');
+        return;
+      }
+      
+      const dDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const dHours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const dMins = Math.floor((diff / 1000 / 60) % 60);
+      
+      setCountdown(`${dDays}d ${dHours}h ${dMins}m`);
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,7 +177,10 @@ export default function Dashboard({ fid }: DashboardProps) {
 
       {/* Stats Grid */}
       <div className="flex justify-between items-end mb-[-8px]">
-        <h3 className="text-lg font-bold">Weekly Stats</h3>
+        <div>
+          <h3 className="text-lg font-bold">Weekly Stats</h3>
+          <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Resets in {countdown}</p>
+        </div>
         <p className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-1 rounded-full">
           {allowance?.snapshotDay 
             ? `Week of ${new Date(allowance.snapshotDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` 
