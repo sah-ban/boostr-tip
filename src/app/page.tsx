@@ -52,7 +52,7 @@ export default function Home() {
             <>
               {activeTab === 'home' && <Dashboard fid={fid} />}
               {activeTab === 'tips' && <TipsTracker fid={fid} />}
-              {activeTab === 'leaders' && <Leaderboard />}
+              {activeTab === 'leaders' && <Leaderboard fid={fid} />}
             </>
           )}
         </div>
