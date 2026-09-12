@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AllowanceData } from '../types';
+import { getAppWeekNumber } from '../lib/dateUtils';
 
 interface AllowanceTrackerProps {
   fid: string;
@@ -45,8 +46,7 @@ export default function AllowanceTracker({ fid }: AllowanceTrackerProps) {
             </thead>
             <tbody className="divide-y divide-slate-700">
               {history.map((entry: any) => {
-                const date = new Date(entry.snapshotDay);
-                const formattedDate = `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                const formattedDate = `Week ${getAppWeekNumber(entry.snapshotDay)}`;
                 
                 return (
                   <tr key={entry.id} className="hover:bg-slate-700/50 transition-colors">

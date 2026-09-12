@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TipData } from '../types';
+import { getAppWeekNumber } from '../lib/dateUtils';
 
 interface TipsTrackerProps {
   fid: string;
@@ -53,8 +54,7 @@ export default function TipsTracker({ fid }: TipsTrackerProps) {
       ) : (
         <div className="flex flex-col gap-3">
           {tips.map((tip: any) => {
-            const date = new Date(tip.snapshotDay);
-            const weekLabel = `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+            const weekLabel = `Week ${getAppWeekNumber(tip.snapshotDay)}`;
             
             return (
               <div key={tip.id} className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
