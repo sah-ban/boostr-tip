@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     return Response.json({
       points: points.points.toString(),
       leaderboardRank: trueRank,
+      snapshotDay: points.snapshotDay.toISOString()
     });
   } catch (error) {
     console.error("Error fetching points:", error);

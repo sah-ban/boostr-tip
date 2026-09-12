@@ -34,19 +34,31 @@ export default function Dashboard({ fid }: DashboardProps) {
         if (userRes && !userRes.error) setUser(userRes);
         if (priceRes && !priceRes.error) setPrice(priceRes);
         
+        let currentWeekTime = 0;
+        
         if (allowanceRes && allowanceRes.allowances && allowanceRes.allowances.length > 0) {
-          setAllowance(allowanceRes.allowances[0]);
+          const latestAllowance = allowanceRes.allowances[0];
+          setAllowance(latestAllowance);
+          currentWeekTime = new Date(latestAllowance.snapshotDay).getTime();
         }
         
-        if (pointsRes && !pointsRes.error) setPoints(pointsRes);
+        if (pointsRes && !pointsRes.error) {
+          if (!currentWeekTime || (pointsRes.snapshotDay && new Date(pointsRes.snapshotDay).getTime() === currentWeekTime)) {
+            setPoints(pointsRes);
+          } else {
+            setPoints({ points: "0", leaderboardRank: null });
+          }
+        }
         
         if (tipsSentRes && tipsSentRes.tips) {
-          setTipsSent(tipsSentRes.tips.filter((t: any) => t.status === 'valid').length);
-          setInvalidTipsSent(tipsSentRes.tips.filter((t: any) => t.status === 'invalid').length);
+          const currentTips = tipsSentRes.tips.filter((t: any) => !currentWeekTime || new Date(t.snapshotDay).getTime() === currentWeekTime);
+          setTipsSent(currentTips.filter((t: any) => t.status === 'valid').length);
+          setInvalidTipsSent(currentTips.filter((t: any) => t.status === 'invalid').length);
         }
         
         if (tipsReceivedRes && tipsReceivedRes.tips) {
-          setTipsReceived(tipsReceivedRes.tips.length);
+          const currentTips = tipsReceivedRes.tips.filter((t: any) => !currentWeekTime || new Date(t.snapshotDay).getTime() === currentWeekTime);
+          setTipsReceived(currentTips.length);
         }
 
       } catch (err: any) {

@@ -32,6 +32,7 @@ export interface AllowanceData {
 export interface PointsData {
   points: string;
   leaderboardRank: number | null;
+  snapshotDay?: string;
 }
 
 export interface PriceData {
