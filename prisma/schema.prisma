@@ -56,6 +56,7 @@ model Allowance {
 
   @@unique([userFid, snapshotDay])
   @@index([snapshotDay])
+  @@index([snapshotDay(sort: Desc), tipAllowance(sort: Desc)])
 }
 
 model Points {
@@ -70,6 +71,7 @@ model Points {
 
   @@unique([userFid, snapshotDay])
   @@index([snapshotDay])
+  @@index([snapshotDay(sort: Desc), points(sort: Desc)])
 }
 
 enum TipStatus {
