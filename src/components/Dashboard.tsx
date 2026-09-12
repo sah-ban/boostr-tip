@@ -148,7 +148,7 @@ export default function Dashboard({ fid }: DashboardProps) {
       <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
         <div>
           <p className="font-bold text-white">Receive Allowance</p>
-          <p className="text-xs text-slate-400 max-w-[200px]">Enable to receive weekly $BOOSTR allowance based on your ranking criteria.</p>
+          <p className="text-xs text-slate-400 max-w-[200px]">Enable to receive weekly $BOOSTR allowance based on your $BOOSTR holdings.</p>
         </div>
         <button 
           onClick={toggleAllowance}
