@@ -140,7 +140,7 @@ export default function Dashboard({ fid }: DashboardProps) {
         </div>
         <div>
           <h2 className="text-xl font-bold">{user?.displayName || 'Unknown User'}</h2>
-          <p className="text-slate-400">@{user?.username || 'unknown'} • fid: {user?.fid}</p>
+          <p className="text-slate-400">@{user?.username || 'unknown'}</p>
         </div>
       </div>
 
