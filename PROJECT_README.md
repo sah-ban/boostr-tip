@@ -41,7 +41,7 @@ All API routes are forced to be dynamic (`export const dynamic = "force-dynamic"
 
 - `/api/user`: Fetches a user's profile and toggles `isAllowanceEnabled`.
 - `/api/points`: Fetches the user's points and dynamically calculates their global rank.
-- `/api/points/week`: A flexible API to fetch points by passing `?week=current`, an ISO week number (`?week=37`), or a date string.
+- `/api/points/week`: A flexible API to fetch points by passing `?week=current`, an absolute app week number (`?week=0`), or a date string (`?week=2026-09-07`). Week 0 is locked to the project launch on Sept 7, 2026.
 - `/api/allowance`: Fetches the user's historical weekly allowances and zips them with their historical points.
 - `/api/tips` & `/api/tips/received`: Fetches the raw ledger of tips involving the user.
 - `/api/leaderboard` & `/api/leaderboard/allowance`: Strictly filters by `getCurrentPeriodStart()` to display the current week's top 100 users, powered by high-performance compound indexes in the database.

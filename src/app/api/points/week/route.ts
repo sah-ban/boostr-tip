@@ -2,15 +2,9 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPeriodStart } from "@/lib/dateUtils";
 
-function getDateFromIsoWeek(week: number, year: number): Date {
-  const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
-  const dow = simple.getUTCDay();
-  const ISOweekStart = simple;
-  if (dow <= 4)
-    ISOweekStart.setUTCDate(simple.getUTCDate() - simple.getUTCDay() + 1);
-  else
-    ISOweekStart.setUTCDate(simple.getUTCDate() + 8 - simple.getUTCDay());
-  return ISOweekStart;
+function getDateFromAppWeek(week: number): Date {
+  const epoch = new Date('2026-09-07T00:00:00.000Z');
+  return new Date(epoch.getTime() + week * 7 * 24 * 60 * 60 * 1000);
 }
 
 export async function GET(request: NextRequest) {
@@ -18,17 +12,16 @@ export async function GET(request: NextRequest) {
   const fid = request.nextUrl.searchParams.get("fid");
 
   if (!weekParam) {
-    return Response.json({ error: "week parameter is required (e.g. 'current', '37', or '2024-09-09')" }, { status: 400 });
+    return Response.json({ error: "week parameter is required (e.g. 'current', '0', '1', or '2026-09-07')" }, { status: 400 });
   }
 
   let snapshotDay: Date;
 
   if (weekParam.toLowerCase() === "current") {
     snapshotDay = getCurrentPeriodStart();
-  } else if (!isNaN(Number(weekParam)) && Number(weekParam) < 54) {
-    // Treat as ISO week number
-    const currentYear = new Date().getUTCFullYear();
-    snapshotDay = getDateFromIsoWeek(Number(weekParam), currentYear);
+  } else if (!isNaN(Number(weekParam))) {
+    // Treat as absolute app week number (0, 1, 2...)
+    snapshotDay = getDateFromAppWeek(Number(weekParam));
   } else {
     // Attempt to parse as date string
     snapshotDay = new Date(weekParam);
