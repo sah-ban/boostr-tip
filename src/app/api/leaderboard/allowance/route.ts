@@ -1,14 +1,15 @@
 export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentPeriodStart } from "@/lib/dateUtils";
 
 export async function GET(request: NextRequest) {
   try {
-    const topAllowances = await prisma.allowance.findMany({
-      orderBy: [
-        { snapshotDay: "desc" },
-        { tipAllowance: "desc" }
-      ],
+    const currentPeriod = getCurrentPeriodStart();
+    
+    const leaderboard = await prisma.allowance.findMany({
+      where: { snapshotDay: currentPeriod },
+      orderBy: { tipAllowance: "desc" },
       take: 100,
       include: {
         user: {
@@ -16,19 +17,6 @@ export async function GET(request: NextRequest) {
         }
       }
     });
-    
-    // De-duplicate by userFid taking the latest snapshot due to order
-    const seen = new Set();
-    const latestAllowances = topAllowances.filter(a => {
-      if (seen.has(a.userFid)) return false;
-      seen.add(a.userFid);
-      return true;
-    });
-
-    // Sort by actual allowance descending
-    latestAllowances.sort((a, b) => Number(b.tipAllowance) - Number(a.tipAllowance));
-
-    const leaderboard = latestAllowances.slice(0, 100);
 
     return Response.json({ leaderboard });
   } catch (error) {

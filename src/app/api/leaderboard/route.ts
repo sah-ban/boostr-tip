@@ -1,14 +1,15 @@
 export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentPeriodStart } from "@/lib/dateUtils";
 
 export async function GET(request: NextRequest) {
   try {
-    const topPoints = await prisma.points.findMany({
-      orderBy: [
-        { snapshotDay: "desc" },
-        { points: "desc" }
-      ],
+    const currentPeriod = getCurrentPeriodStart();
+    
+    const leaderboard = await prisma.points.findMany({
+      where: { snapshotDay: currentPeriod },
+      orderBy: { points: "desc" },
       take: 100,
       include: {
         user: {
@@ -16,19 +17,6 @@ export async function GET(request: NextRequest) {
         }
       }
     });
-    
-    // De-duplicate by userFid taking the latest snapshot due to order
-    const seen = new Set();
-    const latestPoints = topPoints.filter(p => {
-      if (seen.has(p.userFid)) return false;
-      seen.add(p.userFid);
-      return true;
-    });
-
-    // Sort by actual points descending
-    latestPoints.sort((a, b) => Number(b.points) - Number(a.points));
-
-    const leaderboard = latestPoints.slice(0, 100);
 
     return Response.json({ leaderboard });
   } catch (error) {
